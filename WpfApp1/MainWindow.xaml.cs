@@ -1,147 +1,145 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using HabitTrackerWPF.Models;
+using System.Windows.Input;
 
 namespace HabitTrackerWPF
 {
     public partial class MainWindow : Window
     {
-        // Из ветки profile-tab
-        private UserProfile currentUser = new UserProfile();
-
-        // Из ветки habits-tab
-        private ObservableCollection<Habit> habits = new ObservableCollection<Habit>();
+        // Коллекция для ListView (статистика)
+        private ObservableCollection<StatItem> statistics = new ObservableCollection<StatItem>();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Инициализация привычек
-            HabitsDataGrid.ItemsSource = habits;
-            InitializeHabitsData();
+            // Заполняем TreeView категориями привычек
+            SetupTreeView();
 
-            // Привязка ProgressBar к слайдерам
-            ProductivitySlider.ValueChanged += UpdateProgressBar;
-            SatisfactionSlider.ValueChanged += UpdateProgressBar;
+            // Заполняем ListView тестовыми данными
+            InitializeStatisticsData();
 
-            // Календарь
-            HabitsCalendar.SelectedDate = DateTime.Now;
-            HabitsCalendar.DisplayDate = DateTime.Now;
+            // Привязываем коллекцию к ListView
+            StatisticsListView.ItemsSource = statistics;
 
-            UpdateStatus("Приложение загружено");
+            // Подписываемся на события выбора в TreeView
+            CategoriesTreeView.SelectedItemChanged += TreeView_SelectedItemChanged;
+
+            // Подписываемся на событие выбора в ListView
+            StatisticsListView.SelectionChanged += ListView_SelectionChanged;
+
+            // Обновляем статус
+            UpdateStatus("Вкладка Статистика загружена");
         }
 
-        // ==================== ИЗ ВЕТКИ habits-tab ====================
-
-        public class Habit
+        /// <summary>
+        /// Класс для элементов статистики в ListView
+        /// </summary>
+        public class StatItem
         {
-            public string Name { get; set; } = "";
-            public string Time { get; set; } = "";
-            public bool IsDone { get; set; } = false;
+            public string Date { get; set; } = "";
+            public string HabitName { get; set; } = "";
+            public string Status { get; set; } = "";
         }
 
-        private void InitializeHabitsData()
+        /// <summary>
+        /// Настройка TreeView с категориями привычек
+        /// </summary>
+        private void SetupTreeView()
         {
-            habits.Add(new Habit { Name = "Утренняя зарядка", Time = "08:00", IsDone = false });
-            habits.Add(new Habit { Name = "Чтение 30 минут", Time = "20:00", IsDone = false });
-            habits.Add(new Habit { Name = "Медитация", Time = "21:00", IsDone = true });
+            // Корневой элемент
+            TreeViewItem root = new TreeViewItem();
+            root.Header = "📁 Все привычки";
+            root.IsExpanded = true;
+
+            // Категория: Здоровье
+            TreeViewItem health = new TreeViewItem();
+            health.Header = "❤️ Здоровье";
+            health.Tag = "Здоровье";
+
+            health.Items.Add(new TreeViewItem { Header = "🏃 Утренняя зарядка", Tag = "Утренняя зарядка" });
+            health.Items.Add(new TreeViewItem { Header = "🧘 Медитация", Tag = "Медитация" });
+            health.Items.Add(new TreeViewItem { Header = "🚶 Прогулка", Tag = "Прогулка" });
+
+            // Категория: Развитие
+            TreeViewItem development = new TreeViewItem();
+            development.Header = "📚 Развитие";
+            development.Tag = "Развитие";
+
+            development.Items.Add(new TreeViewItem { Header = "📖 Чтение", Tag = "Чтение" });
+            development.Items.Add(new TreeViewItem { Header = "💻 Программирование", Tag = "Программирование" });
+            development.Items.Add(new TreeViewItem { Header = "🇬🇧 Английский язык", Tag = "Английский" });
+
+            // Категория: Продуктивность
+            TreeViewItem productivity = new TreeViewItem();
+            productivity.Header = "⚡ Продуктивность";
+            productivity.Tag = "Продуктивность";
+
+            productivity.Items.Add(new TreeViewItem { Header = "✅ Планирование дня", Tag = "Планирование" });
+            productivity.Items.Add(new TreeViewItem { Header = "⏰ Выполнение дедлайнов", Tag = "Дедлайны" });
+
+            // Добавляем всё в корень
+            root.Items.Add(health);
+            root.Items.Add(development);
+            root.Items.Add(productivity);
+
+            CategoriesTreeView.Items.Add(root);
         }
 
-        private void UpdateProgressBar(object sender, RoutedPropertyChangedEventArgs<double> e)
+        /// <summary>
+        /// Заполнение ListView тестовыми данными
+        /// </summary>
+        private void InitializeStatisticsData()
         {
-            double average = (ProductivitySlider.Value + SatisfactionSlider.Value) / 2;
-            DayProgressBar.Value = average;
-            UpdateStatus($"Прогресс дня: {average:F0}%");
+            statistics.Add(new StatItem { Date = "20.05", HabitName = "Утренняя зарядка", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "20.05", HabitName = "Чтение", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "20.05", HabitName = "Медитация", Status = "❌ Пропущено" });
+            statistics.Add(new StatItem { Date = "19.05", HabitName = "Утренняя зарядка", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "19.05", HabitName = "Чтение", Status = "❌ Пропущено" });
+            statistics.Add(new StatItem { Date = "18.05", HabitName = "Прогулка", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "18.05", HabitName = "Медитация", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "17.05", HabitName = "Английский язык", Status = "✅ Выполнено" });
         }
 
-        private void AddHabit_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Обработчик выбора элемента в TreeView (обновляет статусную строку)
+        /// </summary>
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            if (string.IsNullOrWhiteSpace(NewHabitTextBox.Text))
+            if (e.NewValue is TreeViewItem selectedItem)
             {
-                MessageBox.Show("Введите название привычки!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                string header = selectedItem.Header.ToString();
+                string tag = selectedItem.Tag?.ToString() ?? "";
+
+                if (selectedItem.Items.Count == 0)
+                {
+                    // Лист (конкретная привычка)
+                    UpdateStatus($"Выбрана привычка: {header}");
+                }
+                else
+                {
+                    // Категория
+                    UpdateStatus($"Выбрана категория: {header}");
+                }
             }
-
-            string time = NewHabitTimeTextBox.Text;
-            if (string.IsNullOrWhiteSpace(time)) time = "12:00";
-
-            habits.Add(new Habit
-            {
-                Name = NewHabitTextBox.Text.Trim(),
-                Time = time,
-                IsDone = false
-            });
-
-            NewHabitTextBox.Clear();
-            NewHabitTimeTextBox.Text = "12:00";
-            UpdateStatus($"Добавлена привычка");
-            HabitsDataGrid.ScrollIntoView(habits[habits.Count - 1]);
         }
 
-        // ==================== ИЗ ВЕТКИ profile-tab ====================
-
-        private void SaveProfile_Click(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// Обработчик выбора элемента в ListView (обновляет статусную строку)
+        /// </summary>
+        private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(FirstNameTextBox.Text))
+            if (StatisticsListView.SelectedItem is StatItem selectedItem)
             {
-                MessageBox.Show("Имя не может быть пустым!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                UpdateStatus($"Выбрана запись: {selectedItem.Date} - {selectedItem.HabitName} - {selectedItem.Status}");
             }
-
-            if (BirthDatePicker.SelectedDate > DateTime.Now)
-            {
-                MessageBox.Show("Дата рождения не может быть в будущем!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            currentUser.FirstName = FirstNameTextBox.Text;
-            currentUser.LastName = LastNameTextBox.Text;
-            currentUser.Password = PasswordBox.Password;
-            currentUser.BirthDate = BirthDatePicker.SelectedDate ?? DateTime.Now;
-
-            if (EducationComboBox.SelectedItem is ComboBoxItem selectedEdu)
-                currentUser.Education = selectedEdu.Content.ToString();
-
-            currentUser.Hobbies = HobbiesListBox.SelectedItems
-                .Cast<ListBoxItem>()
-                .Select(x => x.Content.ToString())
-                .ToList();
-
-            currentUser.ReceiveNotifications = NotificationsCheckBox.IsChecked == true;
-            currentUser.PublicStats = PublicStatsCheckBox.IsChecked == true;
-            currentUser.AutoSave = AutoSaveCheckBox.IsChecked == true;
-
-            if (LowActivity.IsChecked == true)
-                currentUser.ActivityLevel = "Низкий";
-            else if (MediumActivity.IsChecked == true)
-                currentUser.ActivityLevel = "Средний";
-            else if (HighActivity.IsChecked == true)
-                currentUser.ActivityLevel = "Высокий";
-
-            UpdateStatus($"Профиль сохранён: {currentUser.FirstName}");
-            MessageBox.Show("Профиль сохранён!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
-        private void ResetProfile_Click(object sender, RoutedEventArgs e)
-        {
-            FirstNameTextBox.Text = "";
-            LastNameTextBox.Text = "";
-            PasswordBox.Password = "";
-            BirthDatePicker.SelectedDate = DateTime.Now;
-            EducationComboBox.SelectedIndex = 0;
-            HobbiesListBox.UnselectAll();
-            NotificationsCheckBox.IsChecked = false;
-            PublicStatsCheckBox.IsChecked = false;
-            AutoSaveCheckBox.IsChecked = true;
-            MediumActivity.IsChecked = true;
-            UpdateStatus("Форма сброшена");
-        }
-
-        // ==================== ОБЩИЕ МЕТОДЫ ====================
-
+        /// <summary>
+        /// Обновление строки состояния
+        /// </summary>
         private void UpdateStatus(string message)
         {
             StatusTextBlock.Text = $"{DateTime.Now.ToShortTimeString()} - {message}";
