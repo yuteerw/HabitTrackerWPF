@@ -1,0 +1,199 @@
+﻿<Window x:Class="HabitTrackerWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Habit Tracker - Управление привычками" 
+        Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen">
+
+    <DockPanel>
+        <!-- Верхнее меню -->
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Файл">
+                <MenuItem Header="_Сохранить" Click="Save_Click" InputGestureText="Ctrl+S"/>
+                <MenuItem Header="_Загрузить" Click="Load_Click" InputGestureText="Ctrl+O"/>
+                <Separator/>
+                <MenuItem Header="_Выход" Click="Exit_Click" InputGestureText="Alt+F4"/>
+            </MenuItem>
+            <MenuItem Header="_Вид">
+                <MenuItem Header="_Светлая тема" Click="LightTheme_Click"/>
+                <MenuItem Header="_Тёмная тема" Click="DarkTheme_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Помощь">
+                <MenuItem Header="О программе" Click="About_Click"/>
+            </MenuItem>
+        </Menu>
+
+        <!-- Панель инструментов -->
+        <ToolBarTray DockPanel.Dock="Top">
+            <ToolBar>
+                <Button Content="💾" ToolTip="Сохранить" Click="Save_Click"/>
+                <Button Content="📂" ToolTip="Загрузить" Click="Load_Click"/>
+                <Separator/>
+                <ToggleButton x:Name="ToggleExtraPanel" Content="📁 Доп. панель" Click="ToggleExtraPanel_Click"/>
+            </ToolBar>
+        </ToolBarTray>
+
+        <!-- Статусбар -->
+        <StatusBar DockPanel.Dock="Bottom">
+            <TextBlock x:Name="StatusTextBlock" Text="Готов к работе"/>
+            <Separator/>
+            <TextBlock Text="| Текущая дата: "/>
+            <TextBlock x:Name="CurrentDateTextBlock"/>
+        </StatusBar>
+
+        <!-- Основная сетка 3 колонки -->
+        <Grid Margin="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition x:Name="RightColumn" Width="2*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ========== ЛЕВАЯ ПАНЕЛЬ ========== -->
+            <Border Grid.Column="0" Background="#F5F5F5" CornerRadius="8" Padding="5" Margin="2">
+                <ScrollViewer>
+                    <TabControl x:Name="MainTabControl">
+
+                        <!-- ВКЛАДКА 1: ЛИЧНЫЕ ДАННЫЕ -->
+                        <TabItem Header="👤 Личные данные">
+                            <StackPanel Margin="5">
+
+                                <GroupBox Header="Основная информация">
+                                    <StackPanel Margin="10">
+                                        <Label Content="Имя:"/>
+                                        <TextBox x:Name="FirstNameTextBox" Margin="0,0,0,10"/>
+                                        <Label Content="Фамилия:"/>
+                                        <TextBox x:Name="LastNameTextBox" Margin="0,0,0,10"/>
+                                        <Label Content="Пароль:"/>
+                                        <PasswordBox x:Name="PasswordBox" Margin="0,0,0,10"/>
+                                        <Label Content="Дата рождения:"/>
+                                        <DatePicker x:Name="BirthDatePicker" Margin="0,0,0,10"/>
+                                    </StackPanel>
+                                </GroupBox>
+
+                                <GroupBox Header="Образование и активность">
+                                    <StackPanel Margin="10">
+                                        <Label Content="Образование:"/>
+                                        <ComboBox x:Name="EducationComboBox" Margin="0,0,0,10">
+                                            <ComboBoxItem>Среднее</ComboBoxItem>
+                                            <ComboBoxItem>Среднее специальное</ComboBoxItem>
+                                            <ComboBoxItem>Высшее</ComboBoxItem>
+                                            <ComboBoxItem>Аспирантура</ComboBoxItem>
+                                        </ComboBox>
+
+                                        <Label Content="Уровень активности:"/>
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                            <RadioButton x:Name="LowActivity" Content="Низкий" GroupName="Activity" Margin="0,0,10,0"/>
+                                            <RadioButton x:Name="MediumActivity" Content="Средний" GroupName="Activity" Margin="0,0,10,0" IsChecked="True"/>
+                                            <RadioButton x:Name="HighActivity" Content="Высокий" GroupName="Activity"/>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </GroupBox>
+
+                                <GroupBox Header="Хобби (множественный выбор)">
+                                    <ListBox x:Name="HobbiesListBox" SelectionMode="Multiple" Height="120">
+                                        <ListBoxItem>Спорт</ListBoxItem>
+                                        <ListBoxItem>Чтение</ListBoxItem>
+                                        <ListBoxItem>Музыка</ListBoxItem>
+                                        <ListBoxItem>Программирование</ListBoxItem>
+                                        <ListBoxItem>Путешествия</ListBoxItem>
+                                    </ListBox>
+                                </GroupBox>
+
+                                <GroupBox Header="Настройки">
+                                    <StackPanel Margin="10">
+                                        <CheckBox x:Name="NotificationsCheckBox" Content="Получать уведомления" Margin="0,0,0,5"/>
+                                        <CheckBox x:Name="PublicStatsCheckBox" Content="Показывать статистику публично" Margin="0,0,0,5"/>
+                                        <CheckBox x:Name="AutoSaveCheckBox" Content="Автосохранение" IsChecked="True"/>
+                                    </StackPanel>
+                                </GroupBox>
+
+                                <WrapPanel Margin="0,10,0,0">
+                                    <Button x:Name="SaveProfileButton" Content="💾 Сохранить профиль" Width="120" Height="30" Margin="0,0,10,5" Click="SaveProfile_Click"/>
+                                    <Button x:Name="ResetProfileButton" Content="🗑️ Сброс" Width="100" Height="30" Click="ResetProfile_Click"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </TabItem>
+
+                        <!-- ВКЛАДКА 2: ПРИВЫЧКИ (упрощённо) -->
+                        <TabItem Header="✅ Привычки">
+                            <StackPanel Margin="5">
+                                <TextBlock Text="📊 Продуктивность дня" FontWeight="Bold"/>
+                                <Slider x:Name="ProductivitySlider" Minimum="0" Maximum="100" Value="50" Margin="0,5,0,10"/>
+
+                                <TextBlock Text="😊 Удовлетворённость" FontWeight="Bold"/>
+                                <Slider x:Name="SatisfactionSlider" Minimum="0" Maximum="100" Value="70" Margin="0,5,0,10"/>
+
+                                <TextBlock Text="📈 Прогресс дня" FontWeight="Bold"/>
+                                <ProgressBar x:Name="DayProgressBar" Minimum="0" Maximum="100" Value="50" Height="20" Margin="0,5,0,10"/>
+
+                                <TextBlock Text="📝 Заметки о привычках" FontWeight="Bold"/>
+                                <RichTextBox x:Name="NotesRichTextBox" Height="100" Margin="0,5,0,10"/>
+
+                                <TextBlock Text="📅 Календарь" FontWeight="Bold"/>
+                                <Calendar x:Name="HabitsCalendar" Margin="0,5,0,10"/>
+
+                                <TextBlock Text="📋 Список привычек" FontWeight="Bold"/>
+                                <DataGrid x:Name="HabitsDataGrid" AutoGenerateColumns="False" Height="200" Margin="0,5,0,10">
+                                    <DataGrid.Columns>
+                                        <DataGridTextColumn Header="Привычка" Binding="{Binding Name}" Width="*"/>
+                                        <DataGridTextColumn Header="Время" Binding="{Binding Time}" Width="100"/>
+                                        <DataGridCheckBoxColumn Header="Выполнено" Binding="{Binding IsDone}" Width="80"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+
+                                <WrapPanel>
+                                    <TextBox x:Name="NewHabitTextBox" Width="200" Height="25" Margin="0,0,10,0"/>
+                                    <Button Content="➕ Добавить привычку" Click="AddHabit_Click"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </TabItem>
+
+                        <!-- ВКЛАДКА 3: СТАТИСТИКА -->
+                        <TabItem Header="📊 Статистика">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="1*"/>
+                                    <ColumnDefinition Width="1*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Margin="5">
+                                    <StackPanel>
+                                        <TextBlock Text="🌳 Категории привычек" FontWeight="Bold"/>
+                                        <TreeView x:Name="CategoriesTreeView" Height="300" Margin="0,5,0,10"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="1" Margin="5">
+                                    <StackPanel>
+                                        <TextBlock Text="📋 Детальная статистика" FontWeight="Bold"/>
+                                        <ListView x:Name="StatisticsListView" Height="300" Margin="0,5,0,10"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+                        </TabItem>
+                    </TabControl>
+                </ScrollViewer>
+            </Border>
+
+            <!-- ========== ЦЕНТРАЛЬНАЯ ПАНЕЛЬ (пустота или дополнительная инфа) ========== -->
+            <Border Grid.Column="1" Background="#FAFAFA" CornerRadius="8" Padding="5" Margin="2">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Image x:Name="AvatarImage" Width="150" Height="150" Source="https://via.placeholder.com/150" Stretch="UniformToFill"/>
+                    <Button Content="📸 Загрузить аватар" Click="LoadAvatar_Click" Margin="0,10,0,0"/>
+                    <TextBlock Text="Центральная панель" Foreground="Gray" Margin="0,20,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- ========== ПРАВАЯ ПАНЕЛЬ (скрывается ToggleButton) ========== -->
+            <Border x:Name="ExtraPanel" Grid.Column="2" Background="#F0F0F0" CornerRadius="8" Padding="5" Margin="2">
+                <StackPanel>
+                    <TextBlock Text="📌 Дополнительная панель" FontWeight="Bold" TextAlignment="Center"/>
+                    <Separator Margin="0,5,0,10"/>
+                    <RepeatButton Content="⬆️ Увеличить продуктивность" Click="IncreaseProductivity_Click" Margin="0,0,0,5"/>
+                    <RepeatButton Content="⬇️ Уменьшить продуктивность" Click="DecreaseProductivity_Click"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </DockPanel>
+</Window>
