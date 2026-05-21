@@ -8,98 +8,133 @@ namespace HabitTrackerWPF
 {
     public partial class MainWindow : Window
     {
-        // Коллекция привычек (автоматически обновляет DataGrid)
-        private ObservableCollection<Habit> habits = new ObservableCollection<Habit>();
+        // Коллекция для ListView (статистика)
+        private ObservableCollection<StatItem> statistics = new ObservableCollection<StatItem>();
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // Привязываем коллекцию к DataGrid
-            HabitsDataGrid.ItemsSource = habits;
+            // Заполняем TreeView категориями привычек
+            SetupTreeView();
 
-            // Добавляем тестовые привычки
-            InitializeHabitsData();
+            // Заполняем ListView тестовыми данными
+            InitializeStatisticsData();
 
-            // Привязываем ProgressBar к Slider'ам
-            ProductivitySlider.ValueChanged += UpdateProgressBar;
-            SatisfactionSlider.ValueChanged += UpdateProgressBar;
+            // Привязываем коллекцию к ListView
+            StatisticsListView.ItemsSource = statistics;
 
-            // Подсвечиваем текущую дату в календаре
-            HabitsCalendar.SelectedDate = DateTime.Now;
-            HabitsCalendar.DisplayDate = DateTime.Now;
+            // Подписываемся на события выбора в TreeView
+            CategoriesTreeView.SelectedItemChanged += TreeView_SelectedItemChanged;
 
-            // Обновляем статус
-            UpdateStatus("Вкладка Привычки загружена");
-        }
-
-        /// <summary>
-        /// Класс привычки для отображения в DataGrid
-        /// </summary>
-        public class Habit
-        {
-            public string Name { get; set; } = "";
-            public string Time { get; set; } = "";
-            public bool IsDone { get; set; } = false;
-        }
-
-        /// <summary>
-        /// Добавление тестовых привычек
-        /// </summary>
-        private void InitializeHabitsData()
-        {
-            habits.Add(new Habit { Name = "Утренняя зарядка", Time = "08:00", IsDone = false });
-            habits.Add(new Habit { Name = "Чтение 30 минут", Time = "20:00", IsDone = false });
-            habits.Add(new Habit { Name = "Медитация", Time = "21:00", IsDone = true });
-            habits.Add(new Habit { Name = "Прогулка на свежем воздухе", Time = "15:00", IsDone = false });
-        }
-
-        /// <summary>
-        /// Обновление ProgressBar на основе среднего значения слайдеров
-        /// </summary>
-        private void UpdateProgressBar(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            double average = (ProductivitySlider.Value + SatisfactionSlider.Value) / 2;
-            DayProgressBar.Value = average;
-            UpdateStatus($"Прогресс дня: {average:F0}%");
-        }
-
-        /// <summary>
-        /// Добавление новой привычки
-        /// </summary>
-        private void AddHabit_Click(object sender, RoutedEventArgs e)
-        {
-            // Проверка: название не пустое
-            if (string.IsNullOrWhiteSpace(NewHabitTextBox.Text))
-            {
-                MessageBox.Show("Введите название привычки!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // Проверка: время не пустое
-            string time = NewHabitTimeTextBox.Text;
-            if (string.IsNullOrWhiteSpace(time))
-            {
-                time = "12:00";
-            }
-
-            // Добавляем новую привычку
-            habits.Add(new Habit
-            {
-                Name = NewHabitTextBox.Text.Trim(),
-                Time = time,
-                IsDone = false
-            });
-
-            // Очищаем поле ввода
-            NewHabitTextBox.Clear();
-            NewHabitTimeTextBox.Text = "12:00";
+            // Подписываемся на событие выбора в ListView
+            StatisticsListView.SelectionChanged += ListView_SelectionChanged;
 
             // Обновляем статус
-            UpdateStatus($"Добавлена привычка: {NewHabitTextBox.Text}");
+            UpdateStatus("Вкладка Статистика загружена");
+        }
 
-            // Прокручиваем DataGrid к последнему элементу
-            HabitsDataGrid.ScrollIntoView(habits[habits.Count - 1]);
+        /// <summary>
+        /// Класс для элементов статистики в ListView
+        /// </summary>
+        public class StatItem
+        {
+            public string Date { get; set; } = "";
+            public string HabitName { get; set; } = "";
+            public string Status { get; set; } = "";
+        }
+
+        /// <summary>
+        /// Настройка TreeView с категориями привычек
+        /// </summary>
+        private void SetupTreeView()
+        {
+            // Корневой элемент
+            TreeViewItem root = new TreeViewItem();
+            root.Header = "📁 Все привычки";
+            root.IsExpanded = true;
+
+            // Категория: Здоровье
+            TreeViewItem health = new TreeViewItem();
+            health.Header = "❤️ Здоровье";
+            health.Tag = "Здоровье";
+
+            health.Items.Add(new TreeViewItem { Header = "🏃 Утренняя зарядка", Tag = "Утренняя зарядка" });
+            health.Items.Add(new TreeViewItem { Header = "🧘 Медитация", Tag = "Медитация" });
+            health.Items.Add(new TreeViewItem { Header = "🚶 Прогулка", Tag = "Прогулка" });
+
+            // Категория: Развитие
+            TreeViewItem development = new TreeViewItem();
+            development.Header = "📚 Развитие";
+            development.Tag = "Развитие";
+
+            development.Items.Add(new TreeViewItem { Header = "📖 Чтение", Tag = "Чтение" });
+            development.Items.Add(new TreeViewItem { Header = "💻 Программирование", Tag = "Программирование" });
+            development.Items.Add(new TreeViewItem { Header = "🇬🇧 Английский язык", Tag = "Английский" });
+
+            // Категория: Продуктивность
+            TreeViewItem productivity = new TreeViewItem();
+            productivity.Header = "⚡ Продуктивность";
+            productivity.Tag = "Продуктивность";
+
+            productivity.Items.Add(new TreeViewItem { Header = "✅ Планирование дня", Tag = "Планирование" });
+            productivity.Items.Add(new TreeViewItem { Header = "⏰ Выполнение дедлайнов", Tag = "Дедлайны" });
+
+            // Добавляем всё в корень
+            root.Items.Add(health);
+            root.Items.Add(development);
+            root.Items.Add(productivity);
+
+            CategoriesTreeView.Items.Add(root);
+        }
+
+        /// <summary>
+        /// Заполнение ListView тестовыми данными
+        /// </summary>
+        private void InitializeStatisticsData()
+        {
+            statistics.Add(new StatItem { Date = "20.05", HabitName = "Утренняя зарядка", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "20.05", HabitName = "Чтение", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "20.05", HabitName = "Медитация", Status = "❌ Пропущено" });
+            statistics.Add(new StatItem { Date = "19.05", HabitName = "Утренняя зарядка", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "19.05", HabitName = "Чтение", Status = "❌ Пропущено" });
+            statistics.Add(new StatItem { Date = "18.05", HabitName = "Прогулка", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "18.05", HabitName = "Медитация", Status = "✅ Выполнено" });
+            statistics.Add(new StatItem { Date = "17.05", HabitName = "Английский язык", Status = "✅ Выполнено" });
+        }
+
+        /// <summary>
+        /// Обработчик выбора элемента в TreeView (обновляет статусную строку)
+        /// </summary>
+        private void TreeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+        {
+            if (e.NewValue is TreeViewItem selectedItem)
+            {
+                string header = selectedItem.Header.ToString();
+                string tag = selectedItem.Tag?.ToString() ?? "";
+
+                if (selectedItem.Items.Count == 0)
+                {
+                    // Лист (конкретная привычка)
+                    UpdateStatus($"Выбрана привычка: {header}");
+                }
+                else
+                {
+                    // Категория
+                    UpdateStatus($"Выбрана категория: {header}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Обработчик выбора элемента в ListView (обновляет статусную строку)
+        /// </summary>
+        private void ListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (StatisticsListView.SelectedItem is StatItem selectedItem)
+            {
+                UpdateStatus($"Выбрана запись: {selectedItem.Date} - {selectedItem.HabitName} - {selectedItem.Status}");
+            }
         }
 
         /// <summary>

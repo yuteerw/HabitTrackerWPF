@@ -1,7 +1,7 @@
-﻿<Window x:Class="HabitTrackerWPF.MainWindow"
+﻿<W<Window x:Class="HabitTrackerWPF.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Habit Tracker - Привычки" 
+        Title="Habit Tracker - Статистика" 
         Height="700" Width="1000"
         WindowStartupLocation="CenterScreen">
 
@@ -17,50 +17,38 @@
             <TextBlock Text="Личные данные будут здесь (ветка profile-tab)" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
         </Border>
 
-        <!-- ========== ЦЕНТРАЛЬНАЯ ПАНЕЛЬ (ПРИВЫЧКИ) ========== -->
+        <!-- ========== ЦЕНТРАЛЬНАЯ ПАНЕЛЬ (заглушка) ========== -->
         <Border Grid.Column="1" Background="#FAFAFA" CornerRadius="8" Padding="5" Margin="2">
-            <ScrollViewer>
-                <StackPanel>
-
-                    <TextBlock Text="📊 Продуктивность дня" FontWeight="Bold" Margin="0,5,0,5"/>
-                    <Slider x:Name="ProductivitySlider" Minimum="0" Maximum="100" Value="50" Margin="0,5,0,10"/>
-
-                    <TextBlock Text="😊 Удовлетворённость" FontWeight="Bold" Margin="0,5,0,5"/>
-                    <Slider x:Name="SatisfactionSlider" Minimum="0" Maximum="100" Value="70" Margin="0,5,0,10"/>
-
-                    <TextBlock Text="📈 Прогресс дня" FontWeight="Bold" Margin="0,5,0,5"/>
-                    <ProgressBar x:Name="DayProgressBar" Minimum="0" Maximum="100" Value="50" Height="25" Margin="0,5,0,10"/>
-
-                    <TextBlock Text="📝 Заметки о привычках" FontWeight="Bold" Margin="0,5,0,5"/>
-                    <RichTextBox x:Name="NotesRichTextBox" Height="100" Margin="0,5,0,10"/>
-
-                    <TextBlock Text="📅 Календарь" FontWeight="Bold" Margin="0,5,0,5"/>
-                    <Calendar x:Name="HabitsCalendar" Margin="0,5,0,10"/>
-
-                    <TextBlock Text="📋 Список привычек" FontWeight="Bold" Margin="0,5,0,5"/>
-                    <DataGrid x:Name="HabitsDataGrid" AutoGenerateColumns="False" Height="200" Margin="0,5,0,10">
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Привычка" Binding="{Binding Name}" Width="*"/>
-                            <DataGridTextColumn Header="Время" Binding="{Binding Time}" Width="80"/>
-                            <DataGridCheckBoxColumn Header="Выполнено" Binding="{Binding IsDone}" Width="80"/>
-                        </DataGrid.Columns>
-                    </DataGrid>
-
-                    <WrapPanel Margin="0,5,0,10">
-                        <TextBox x:Name="NewHabitTextBox" Width="200" Height="25" Margin="0,0,10,0" ToolTip="Введите название привычки"/>
-                        <TextBox x:Name="NewHabitTimeTextBox" Width="80" Height="25" Margin="0,0,10,0" Text="12:00" ToolTip="Время (например, 19:00)"/>
-                        <Button Content="➕ Добавить привычку" Click="AddHabit_Click"/>
-                    </WrapPanel>
-
-                    <TextBlock x:Name="StatusTextBlock" Foreground="Gray" FontSize="11" Text="Готов" Margin="0,10,0,0"/>
-                </StackPanel>
-            </ScrollViewer>
+            <TextBlock Text="Привычки будут здесь (ветка habits-tab)" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
         </Border>
 
-        <!-- ========== ПРАВАЯ ПАНЕЛЬ (заглушка) ========== -->
+        <!-- ========== ПРАВАЯ ПАНЕЛЬ (СТАТИСТИКА) ========== -->
         <Border Grid.Column="2" Background="#F0F0F0" CornerRadius="8" Padding="5" Margin="2">
-            <TextBlock Text="Статистика будет здесь (ветка stats-tab)" TextWrapping="Wrap" TextAlignment="Center" VerticalAlignment="Center"/>
+            <StackPanel>
+
+                <TextBlock Text="📊 СТАТИСТИКА" FontWeight="Bold" FontSize="14" TextAlignment="Center" Margin="0,0,0,10"/>
+
+                <TextBlock Text="🌳 Категории привычек" FontWeight="Bold" Margin="0,5,0,5"/>
+                <TreeView x:Name="CategoriesTreeView" Height="200" Margin="0,5,0,10"/>
+
+                <TextBlock Text="📋 Детальная статистика" FontWeight="Bold" Margin="0,5,0,5"/>
+                <ListView x:Name="StatisticsListView" Height="200" Margin="0,5,0,10">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Дата" Width="80" DisplayMemberBinding="{Binding Date}"/>
+                            <GridViewColumn Header="Привычка" Width="100" DisplayMemberBinding="{Binding HabitName}"/>
+                            <GridViewColumn Header="Статус" Width="80" DisplayMemberBinding="{Binding Status}"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+
+                <!-- Статусная строка внутри панели -->
+                <Border Background="White" CornerRadius="5" Padding="5" Margin="0,10,0,0">
+                    <TextBlock x:Name="StatusTextBlock" Foreground="Gray" FontSize="11" Text="Выберите категорию или элемент статистики"/>
+                </Border>
+
+            </StackPanel>
         </Border>
 
     </Grid>
-</Window>
+    </Window>
