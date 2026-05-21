@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace HabitTrackerWPF.Models
 {
+    /// <summary>
+    /// Класс профиля пользователя для хранения личных данных
+    /// </summary>
     public class UserProfile
     {
         public string FirstName { get; set; } = "";
